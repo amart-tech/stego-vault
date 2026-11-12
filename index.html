@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StegoVault | Dual-Layer Image Steganography with AES Encryption</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="cyber-grid-overlay"></div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <div class="app-layout">
+
+        <!-- ── HEADER ──────────────────────────────────────────────── -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-icon-wrapper">
+                    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        <circle cx="12" cy="16" r="1.5"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand-title-row">
+                        <h1 class="brand-title">STEGO<span>VAULT</span></h1>
+                    </div>
+                    <p class="brand-subtitle">Dual-Layer Image Steganography &amp; AES-128-CBC Encryption</p>
+                </div>
+            </div>
+            <div class="header-badges">
+                <div class="security-chip"><span class="chip-dot"></span><span>AES-128-CBC + HMAC</span></div>
+                <div class="security-chip"><span class="chip-dot dot-cyan"></span><span>PBKDF2 · 480K rounds</span></div>
+                <div class="security-chip"><span class="chip-dot dot-purple"></span><span>Spatial RGB LSB</span></div>
+            </div>
+        </header>
+
+        <!-- ── TABS ────────────────────────────────────────────────── -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="tab-btn active" id="tab-encode-btn" data-tab="tab-encode" role="tab" aria-selected="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Encode / Hide Message</span>
+            </button>
+            <button class="tab-btn" id="tab-decode-btn" data-tab="tab-decode" role="tab" aria-selected="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+                <span>Decode / Reveal Message</span>
+            </button>
+        </nav>
+
+        <!-- ── MAIN CONTENT ─────────────────────────────────────────── -->
+        <main class="main-content">
+
+            <!-- ═══════════════════════════════════════════════════════
+                 TAB 1 — ENCODE / HIDE MESSAGE
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="tab-encode" class="tab-panel active" role="tabpanel">
+                <div class="panel-grid">
+
+                    <!-- Left: Input Form -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="step-num">01</span>
+                                <h2>Conceal Secret Data</h2>
+                            </div>
+                            <span class="badge badge-indigo">AES → LSB Embed</span>
+                        </div>
+
+                        <form id="encode-form" autocomplete="off" novalidate>
+
+                            <!-- Image Upload -->
+                            <div class="form-group">
+                                <label class="input-label">
+                                    <span>Carrier Image</span>
+                                    <span class="label-hint">PNG or JPEG</span>
+                                </label>
+                                <div class="dropzone" id="encode-dropzone">
+                                    <input type="file" id="encode-image-input" accept="image/png, image/jpeg, image/jpg" class="file-input-hidden">
+                                    <!-- Prompt -->
+                                    <div class="dropzone-content" id="encode-dropzone-prompt">
+                                        <div class="upload-icon-circle">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="17 8 12 3 7 8"></polyline>
+                                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                                            </svg>
+                                        </div>
+                                        <p class="dropzone-title">Drag &amp; drop a PNG or JPEG image here</p>
+                                        <p class="dropzone-desc">or <span class="browse-link">browse files</span></p>
+                                        <div class="format-warning-chip format-info-chip">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                            <span>PNG &amp; JPEG supported (auto-exported as lossless PNG)</span>
+                                        </div>
+                                    </div>
+                                    <!-- Preview -->
+                                    <div class="image-preview-container hidden" id="encode-preview-container">
+                                        <img id="encode-image-preview" src="" alt="Carrier preview" class="preview-thumb">
+                                        <div class="preview-meta">
+                                            <div class="meta-row">
+                                                <span class="meta-filename" id="encode-file-name">filename.png</span>
+                                                <button type="button" class="btn-icon-danger" id="encode-remove-image" title="Remove">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                </button>
+                                            </div>
+                                            <div class="meta-stats-grid">
+                                                <div class="mini-stat"><span class="stat-lbl">Dimensions</span><span class="stat-val" id="encode-img-dims">-- × --</span></div>
+                                                <div class="mini-stat"><span class="stat-lbl">RGB Channels</span><span class="stat-val" id="encode-img-channels">--</span></div>
+                                                <div class="mini-stat"><span class="stat-lbl">Max Capacity</span><span class="stat-val highlight" id="encode-img-max-bytes">-- bytes</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message -->
+                            <div class="form-group">
+                                <div class="label-with-counter">
+                                    <label class="input-label" for="encode-message">Secret Message</label>
+                                    <span class="text-counter" id="message-counter">0 chars</span>
+                                </div>
+                                <textarea id="encode-message" rows="4" class="cyber-textarea" placeholder="Type the confidential message to encrypt and hide inside the image…"></textarea>
+                            </div>
+
+                            <!-- Live Capacity Bar -->
+                            <div class="capacity-meter-box">
+                                <div class="capacity-labels">
+                                    <span class="capacity-title">Payload Capacity</span>
+                                    <span class="capacity-value" id="capacity-used-text">Upload image first</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-bar" id="capacity-progress-bar" style="width:0%"></div>
+                                </div>
+                                <div class="capacity-footnote" id="capacity-footnote">32-bit header + 16-byte salt + AES ciphertext</div>
+                            </div>
+
+                            <!-- Passphrase -->
+                            <div class="form-group">
+                                <label class="input-label">
+                                    <span>Encryption Passphrase</span>
+                                    <span class="label-hint">PBKDF2 key derivation</span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="encode-passphrase" class="cyber-input" placeholder="Enter a strong secret passphrase…">
+                                    <button type="button" class="btn-toggle-password" data-target="encode-passphrase" aria-label="Toggle visibility">
+                                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    </button>
+                                </div>
+                                <p class="field-hint">Combined with a random 16-byte salt → 256-bit AES key via PBKDF2 (480,000 iterations).</p>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" class="cyber-btn cyber-btn-primary" id="btn-submit-encode">
+                                <span class="btn-text">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    Encrypt &amp; Conceal in LSB
+                                </span>
+                                <span class="btn-spinner hidden"><span class="spinner-ring"></span>Encrypting &amp; Embedding…</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Result -->
+                    <div class="card result-card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="step-num">02</span><h2>Stego Image Output</h2></div>
+                            <span class="badge badge-emerald" id="encode-status-badge">Awaiting Input</span>
+                        </div>
+
+                        <!-- Empty state -->
+                        <div class="empty-state" id="encode-empty-state">
+                            <div class="empty-icon-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            </div>
+                            <h3>No Stego Image Yet</h3>
+                            <p>Upload a PNG carrier, type your secret message, set a passphrase, then click the button.</p>
+                        </div>
+
+                        <!-- Result content -->
+                        <div class="result-content hidden" id="encode-result-content">
+                            <div class="stego-preview-box">
+                                <img id="stego-image-preview" src="" alt="Stego image" class="stego-result-img">
+                                <div class="stego-overlay-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    <span>LSB Embedded &amp; Verified</span>
+                                </div>
+                            </div>
+
+                            <div class="result-details">
+                                <h4 class="details-heading">Cryptographic &amp; Steganographic Telemetry</h4>
+                                <div class="telemetry-grid">
+                                    <div class="telemetry-item"><span class="t-label">Cipher Suite</span><span class="t-val text-indigo">AES-128-CBC (PKCS7)</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Authentication</span><span class="t-val text-cyan">HMAC-SHA256</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Random Salt</span><span class="t-val" id="res-salt-size">16 Bytes</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Ciphertext Size</span><span class="t-val" id="res-ct-size">--</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Header (32-bit)</span><span class="t-val">4 Bytes</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Total Bits Injected</span><span class="t-val highlight" id="res-total-bits">--</span></div>
+                                    <div class="telemetry-item"><span class="t-label">PSNR Quality</span><span class="t-val text-emerald" id="res-psnr">-- dB</span></div>
+                                    <div class="telemetry-item"><span class="t-label">MSE Distortion</span><span class="t-val text-light" id="res-mse">--</span></div>
+                                    <div class="telemetry-item full-width"><span class="t-label">Carrier Space Used</span><span class="t-val" id="res-capacity-pct">--</span></div>
+                                </div>
+                                <div class="action-buttons-row">
+                                    <a id="btn-download-stego" href="#" download="stego_vault_encoded.png" class="cyber-btn cyber-btn-success">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        Download Stego PNG
+                                    </a>
+                                    <button type="button" id="btn-reset-encode" class="cyber-btn cyber-btn-secondary" title="Start a fresh encoding session">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                        New Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════
+                 TAB 2 — DECODE / REVEAL MESSAGE
+            ═══════════════════════════════════════════════════════════ -->
+            <section id="tab-decode" class="tab-panel" role="tabpanel">
+                <div class="panel-grid">
+
+                    <!-- Left: Input Form -->
+                    <div class="card form-card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="step-num">01</span><h2>Extract &amp; Decrypt</h2></div>
+                            <span class="badge badge-purple">LSB Extract → AES Decrypt</span>
+                        </div>
+
+                        <form id="decode-form" autocomplete="off" novalidate>
+
+                            <!-- Image Upload -->
+                            <div class="form-group">
+                                <label class="input-label">
+                                    <span>Steganographic PNG Image</span>
+                                    <span class="label-hint">Must be lossless PNG</span>
+                                </label>
+                                <div class="dropzone" id="decode-dropzone">
+                                    <input type="file" id="decode-image-input" accept="image/png" class="file-input-hidden">
+                                    <!-- Prompt -->
+                                    <div class="dropzone-content" id="decode-dropzone-prompt">
+                                        <div class="upload-icon-circle icon-purple">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                                            </svg>
+                                        </div>
+                                        <p class="dropzone-title">Drag &amp; drop the encoded stego PNG</p>
+                                        <p class="dropzone-desc">or <span class="browse-link">browse files</span></p>
+                                    </div>
+                                    <!-- Preview -->
+                                    <div class="image-preview-container hidden" id="decode-preview-container">
+                                        <img id="decode-image-preview" src="" alt="Stego preview" class="preview-thumb">
+                                        <div class="preview-meta">
+                                            <div class="meta-row">
+                                                <span class="meta-filename" id="decode-file-name">stego.png</span>
+                                                <button type="button" class="btn-icon-danger" id="decode-remove-image" title="Remove">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                </button>
+                                            </div>
+                                            <div class="meta-stats-grid">
+                                                <div class="mini-stat"><span class="stat-lbl">Dimensions</span><span class="stat-val" id="decode-img-dims">-- × --</span></div>
+                                                <div class="mini-stat"><span class="stat-lbl">RGB Channels</span><span class="stat-val" id="decode-img-channels">--</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Passphrase -->
+                            <div class="form-group">
+                                <label class="input-label">
+                                    <span>Decryption Passphrase</span>
+                                    <span class="label-hint">Must match encoding passphrase</span>
+                                </label>
+                                <div class="password-input-wrapper">
+                                    <input type="password" id="decode-passphrase" class="cyber-input" placeholder="Enter the same passphrase used during encoding…">
+                                    <button type="button" class="btn-toggle-password" data-target="decode-passphrase" aria-label="Toggle visibility">
+                                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <svg class="eye-closed hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                    </button>
+                                </div>
+                                <p class="field-hint">Fernet re-derives the AES key and verifies HMAC-SHA256 before decrypting.</p>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" class="cyber-btn cyber-btn-purple" id="btn-submit-decode">
+                                <span class="btn-text">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                                    Extract &amp; Decrypt Payload
+                                </span>
+                                <span class="btn-spinner hidden"><span class="spinner-ring"></span>Extracting &amp; Decrypting…</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Result -->
+                    <div class="card result-card">
+                        <div class="card-header">
+                            <div class="card-title"><span class="step-num">02</span><h2>Decrypted Message</h2></div>
+                            <span class="badge badge-indigo" id="decode-status-badge">Awaiting Payload</span>
+                        </div>
+
+                        <!-- Empty state -->
+                        <div class="empty-state" id="decode-empty-state">
+                            <div class="empty-icon-box icon-purple">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            <h3>Awaiting Decryption</h3>
+                            <p>Upload the stego PNG and enter the correct passphrase to reveal the hidden message.</p>
+                        </div>
+
+                        <!-- Result content -->
+                        <div class="result-content hidden" id="decode-result-content">
+                            <div class="security-badge-success">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                                <span>HMAC-SHA256 Authenticated · AES-128 Plaintext Restored</span>
+                            </div>
+
+                            <div class="terminal-box">
+                                <div class="terminal-bar">
+                                    <div class="terminal-dots"><span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span></div>
+                                    <span class="terminal-title">plaintext_output.txt</span>
+                                    <button type="button" class="btn-copy" id="btn-copy-plaintext">
+                                        <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        <svg class="check-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <span id="copy-btn-text">Copy</span>
+                                    </button>
+                                </div>
+                                <div class="terminal-body">
+                                    <pre id="decrypted-text-output" class="plaintext-display"></pre>
+                                </div>
+                            </div>
+
+                            <div class="result-details">
+                                <h4 class="details-heading">Extraction Diagnostics</h4>
+                                <div class="telemetry-grid">
+                                    <div class="telemetry-item"><span class="t-label">Payload Size</span><span class="t-val text-cyan" id="dec-payload-size">--</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Bits Extracted</span><span class="t-val" id="dec-total-bits">--</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Salt Verified</span><span class="t-val text-emerald">16 Bytes ✓</span></div>
+                                    <div class="telemetry-item"><span class="t-label">Integrity</span><span class="t-val text-emerald">HMAC OK · No Tampering</span></div>
+                                </div>
+                                <div class="action-buttons-row" style="margin-top: 16px;">
+                                    <button type="button" id="btn-reset-decode" class="cyber-btn cyber-btn-secondary" title="Start a fresh decoding session">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                        Decode Another Image
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <span class="footer-title">StegoVault</span>
+                <span class="footer-sep">&bull;</span>
+                <span>Developed by <strong>Amartya Bhushan</strong></span>
+            </div>
+            <div class="footer-tech-stack">
+                <span class="tech-tag">Python 3</span>
+                <span class="tech-tag">Flask</span>
+                <span class="tech-tag">Pillow (PIL)</span>
+                <span class="tech-tag">AES-128 / Fernet</span>
+                <span class="tech-tag">Vanilla JS</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
